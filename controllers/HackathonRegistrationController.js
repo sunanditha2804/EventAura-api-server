@@ -27,7 +27,7 @@ const HackathonRegistration = async (req, res) => {
       team_members,
       hackathon_name,
       team_extra,
-      merchantTransactionId,
+      merchand_transaction_id: merchantTransactionId,
     });
 
     const data = {
@@ -35,7 +35,7 @@ const HackathonRegistration = async (req, res) => {
       merchantTransactionId,
       merchantUserId: merchantId,
       amount: parseInt(amount) * 100,
-      redirectUrl: `https://api.eventaura.tech/api/phone-pay/status/${merchantId}/${merchantTransactionId}/${event._id}`,
+      redirectUrl: `https://api.eventaura.tech/api/phone-pay/status/${merchantId}/${merchantTransactionId}/${hackathon._id}`,
       redirectMode: "POST",
       mobileNumber: phoneNumber,
       paymentInstrument: {
@@ -121,11 +121,11 @@ const PaidHackathonStatus = async (req, res) => {
 
     // Handle the response
     const hackathon_team = await HackathonTeamModel.findOne({
-      merchantTransactionId,
+      merchand_transaction_id: merchantTransactionId,
     });
     const hackathon = await HackathonModel.findById(hackathonId);
     if (!hackathon_team) {
-      return res.status(404).json({ message: false, error: "User not found" });
+      return res.status(404).json({ message: false, error: "Team not found" });
     }
 
     hackathon_team.paymentData = response.data;
@@ -136,13 +136,13 @@ const PaidHackathonStatus = async (req, res) => {
     if (response.data.data.responseCode === "SUCCESS") {
       (async () => {
         try {
-          const eventRegistrationService = new HackathonRegistrationService(
+          const hackathonRegistrationService = new HackathonRegistrationService(
             hackathon_team,
             hackathon
           );
-          await eventRegistrationService.generateQRCode();
-          await eventRegistrationService.generatePDF();
-          await eventRegistrationService.sendEmail();
+          await hackathonRegistrationService.generateQRCode();
+          await hackathonRegistrationService.generatePDF();
+          await hackathonRegistrationService.sendEmail();
         } catch (error) {
           if (!res.headersSent) {
             return res

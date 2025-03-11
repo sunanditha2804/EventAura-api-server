@@ -39,109 +39,80 @@ class HackathonRegistrationService {
         transactionIdContent = ` ${this.team.paymentData.data.transactionId}`;
       }
       let priceContent =
-        this.team.eventPrice && this.team.eventPrice !== "0"
-          ? ` ${this.team.eventPrice}`
+        this.team.paymentData.data.amount && this.team.paymentData.data.amount !== "0"
+          ? ` ${this.team.paymentData.data.amount}`
           : "FREE";
+
 
       const content = `
       <!DOCTYPE html>
       <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Event Registration PDF</title>
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="stylesheet" href="./index.css">
+          <title>Hackathon Registration PDF</title>
           <style>
-            @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
-      
-            body {
-              font-family: "Poppins", sans-serif; /* Use Poppins font */
-              margin: 0;
-              padding: 0;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              min-height: 100vh;
-              background-color: #f8f8f8;
-            }
-      
-            .container {
-              width: 90%;
-              max-width: 800px;
-              display: flex;
-              border-radius: 10px;
-              overflow: hidden;
-              box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-              background-color: #fff;
-            }
-      
-            .left-column,
-            .right-column {
-              padding: 40px;
-            }
-      
-            .left-column {
-              flex: 1;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-            }
-      
-            .right-column {
-              flex: 2;
-              padding-left: 20px;
-              padding-right: 40px;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              color: #333;
-            }
-      
-            img {
-              max-width: 100%;
-              border-radius: 10px;
-            }
-      
-            h1 {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 24px;
-            }
-      
-            p {
-              margin: 5px 0;
-              line-height: 1.6;
-              font-size: 18px;
-            }
-      
-            .bold {
-              font-weight: bold;
-            }
-      
-            /* Vertical line */
-            .vertical-line {
-              width: 2px;
-              background-color: #ddd;
-            }
+              .container{
+                  background-color:rgb(32, 31, 31);
+                  width:50%;
+                  height: auto;
+                  padding:2rem;
+                  color: white;
+              }
+              
+              .header1{
+                  display: flex;
+                  flex-direction: row;
+              }
+              
+              .team-name{
+                  flex: 50%;
+              }
+              
+              .qr-code{
+                  flex: 0%;
+              }
+              
+              h3{
+                  font-weight: 300;
+              }
           </style>
-        </head>
-        <body>
+      </head>
+      <body>
           <div class="container">
-            <div class="left-column">
-              <img src="${this.team.qrCode}" alt="QR Code" />
-            </div>
-            <div class="vertical-line"></div>
-            <div class="right-column">
-              <p><span class="bold">Name:</span> ${this.team.name}</p>
-              <p><span class="bold">College:</span> ${this.team.college}</p>
-              <p><span class="bold">Phone Number:</span> ${this.team.phoneNumber}</p>
-              <p><span class="bold">Roll Number:</span> ${this.team.rollNumber}</p>
-              <p><span class="bold">Event Name:</span> ${this.team.eventName}</p>
-              <p><span class="bold">Transaction Id:</span> ${transactionIdContent}</p>
-              <p><span class="bold">Event Price:</span> ${priceContent}</p>
-            </div>
+              <div class="header1">
+                  <div class="team-name">
+                      <h1>Team Name: ${this.team.team_name}</h1>
+                      <h3>Merchant ID: ${this.team.merchand_transaction_id}</h3>
+                  </div>
+                  <div class="qr-code">
+                      <img src="${this.team.team_qr_code}" alt="qr code">
+                  </div>            
+              </div>
+              <div class="event-details">
+                  <h2>Event Details: </h2>
+                  <h3>Name: ${this.hackathon.hackathon_name}</h3>
+                  <h3>Venue: ${this.hackathon.hackathon_venue}</h3>
+                  <h3>Timings: ${this.hackathon.hackathon_duration}</h3>
+              </div>
+              <br>
+              <div class="team-leader">
+                  <h2>Team Leader Name : ${this.team_members[0].name}</h2>
+                  <h3>Team Leader Email : ${this.team_members[0].email}</h3>
+                  <h3>Team Leader Phone Number : ${this.team_members[0].phone_number}</h3>
+              </div>
+              <br>
+              <div class="team-details">
+                  <h2>Team Members:</h2>
+                  ${this.team.team_members.map((member, index) => `<h3>Member ${index + 1}: ${member.name} (${member.email})</h3>`).join('')}
+              </div>
+              <br>
+              <div class="footer">
+                  <p>&copy; <script>document.write(new Date().getFullYear())</script> EventAura</p>
+              </div>
           </div>
-        </body>
+      </body>
       </html>
       
       `;
@@ -174,8 +145,8 @@ class HackathonRegistrationService {
 
       const mailOptions = {
         from: process.env.EMAIL,
-        to: this.team.email,
-        subject: "Event Registration Confirmation",
+        to: this.team.team_members[0].email,
+        subject: "Hackathon Registration Confirmation",
         html: `
         <!DOCTYPE html>
         <html lang="en">
@@ -271,41 +242,37 @@ class HackathonRegistrationService {
         <h1>EventAura</h1>
       </div>
       <div class="content">
-        <p>Dear ${this.team.name},</p>
+        <p>Dear ${this.team.team_members[0].name},</p>
         <p>
           Thank you for registering for the event
-          <strong>${this.event.eventName}</strong> hosted by
-          <strong>${this.event.eventHostedBy}</strong> at
-          <strong>${this.event.eventVenue}</strong>. We're delighted to have you
+          <strong>${this.team.hackathon_name}</strong> hosted by
+          <strong>${this.hackathon.hackathon_host}</strong> at
+          <strong>${this.hackathon.hackathon_venue}</strong>. We're delighted to have you
           join us and hope you have a wonderful experience!
         </p>
-        <p>${this.event.eventMailDescription}</p>
-        <h2>Event Venue</h2>
+        <p>${this.hackathon.hackathon_mail_description}</p>
+        <h2>Hackathon Venue</h2>
         <p>
-          The event will be held at <strong>${this.event.eventVenue}</strong>.
+          The event will be held at <strong>${this.hackathon.hackathon_venue}</strong>.
           For more information about the venue, including directions and
           facilities follow the link:
-          <a href="${this.event.eventVenueUrl}">${this.event.eventVenueUrl}</a>.
+          <a href="${this.hackathon.hackathon_venue.name}">${this.hackathon.hackathon_venue.url}</a>.
         </p>
         <h2>Contact Details</h2>
-        <p><strong>Email:</strong> ${this.event.eventManagerMail}</p>
-        <p><strong>Phone:</strong> ${this.event.eventManagerPhone}</p>
+        // <p><strong>Email:</strong> ${this.event.eventManagerMail}</p>
+        // <p><strong>Phone:</strong> ${this.event.eventManagerPhone}</p>
         <p>
           Please find your registration details and QR code in the attached PDF.
         </p>
       </div>
       <div class="footer">
         <p>
-          &copy; 2024 EventAura
+          <p>&copy; <script>document.write(new Date().getFullYear())</script> EventAura</p>
         </p>
       </div>
     </div>
   </body>
-</html>
-
-
-
-        
+</html>       
         `,
         attachments: [{ filename: `${this.team._id}.pdf`, path: this.pdfPath }],
       };
